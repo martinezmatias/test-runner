@@ -23,6 +23,8 @@ public class Example {
 		variableInsideConstructor = 15; 
 		index = 2 * variableInsideConstructor;
 	}
-	
+	public int getIndex(){
+		return index;
+	}
 	private int index = 419382;
 }

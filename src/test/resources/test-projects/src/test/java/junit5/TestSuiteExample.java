@@ -43,5 +43,20 @@ public class TestSuiteExample {
         example.Example ex = new example.Example();
         assertEquals('d', ex.charAt("abcd", 3));
     }
+    
+    @Test
+    public void test2_rt() {
+    	int i = 1;
+    	if (i> 0){
+        example.Example ex = new example.Example();
+        assertEquals('d', ex.charAt("abcd", 3));
+        ex.getIndex();
+        i =0;
+    	}else{
+    	  example.Example ex = new example.Example();
+        assertEquals('d', ex.charAt("abcd", 3));
+    	}
+    }
+    
 }
 
