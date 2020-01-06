@@ -65,15 +65,7 @@ public class CoverageLineImpl implements Coverage, Serializable {
 		} catch (IOException e) {
 			throw new RuntimeException(e);
 		}
-
-		AnalyzerExt anex = new AnalyzerExt(executionData);
-
-		try {
-			anex.analyzeAll(new File(classesDirectory));
-
-		} catch (IOException e) {
-			throw new RuntimeException(e);
-		}
+		//
 
 		for (IClassCoverage classCoverage : coverageBuilder.getClasses()) {
 

@@ -48,9 +48,14 @@ public class JUnit4Coverage extends JUnit4TestResult implements Coverage, Serial
 		return this.internalCoverage.getExecutionPath();
 	}
 
+	public ExecutionDataStore executionData;
+
 	@Override
 	public void collectData(ExecutionDataStore executionData, String classesDirectory) {
 		this.internalCoverage.collectData(executionData, classesDirectory);
+		//
+		this.executionData = executionData;
+
 	}
 
 	@Override

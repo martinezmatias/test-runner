@@ -131,7 +131,7 @@ public abstract class JacocoRunner {
 				System.err.println("Some test(s) failed during computation of coverage:\n" + ((TestResult) listener)
 						.getFailingTests().stream().map(Failure::toString).collect(Collectors.joining("\n")));
 			}
-			System.out.println("Running test " + ((new Date()).getTime() - initTest));
+			// System.out.println("Running test " + ((new Date()).getTime() - initTest));
 
 			initTest = (new Date()).getTime();
 			data.collect(executionData, sessionInfos, false);
@@ -143,7 +143,7 @@ public abstract class JacocoRunner {
 			// listener.collectData(executionData, testClassesDirectory);
 			//
 			listener.collectData(executionData, classesDirectory);
-			System.out.println("Running Collect " + ((new Date()).getTime() - initTest));
+			// System.out.println("Running Collect " + ((new Date()).getTime() - initTest));
 
 			return listener;
 
