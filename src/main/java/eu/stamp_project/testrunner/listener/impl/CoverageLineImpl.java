@@ -65,7 +65,6 @@ public class CoverageLineImpl implements Coverage, Serializable {
 		} catch (IOException e) {
 			throw new RuntimeException(e);
 		}
-		//
 
 		for (IClassCoverage classCoverage : coverageBuilder.getClasses()) {
 

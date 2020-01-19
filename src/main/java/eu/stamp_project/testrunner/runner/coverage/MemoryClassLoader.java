@@ -13,6 +13,10 @@ public class MemoryClassLoader extends URLClassLoader {
 		super(urls, ClassLoader.getSystemClassLoader());
 	}
 
+	public MemoryClassLoader(URL[] urls, ClassLoader parent) {
+		super(urls, parent);
+	}
+
 	/**
 	 * Add a in-memory representation of a class.
 	 *

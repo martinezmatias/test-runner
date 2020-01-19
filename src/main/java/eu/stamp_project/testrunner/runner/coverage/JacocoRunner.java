@@ -72,15 +72,19 @@ public abstract class JacocoRunner {
 		// instrument source code
 		instrumentAll(classesDirectory);
 		// MM
-		instrumentAll(testClassesDirectory);
+		// instrumentAll(testClassesDirectory);
 	}
 
-	public void recreateInstrumentedClassloaded(String classesDirectory, String testClassesDirectory,
+	public void recreateInstrumentedClassloaded(String classpath, String classesDirectory, String testClassesDirectory,
 			Map<String, byte[]> definitions) {
 		try {
+
+			URLClassLoader urlloader = getUrlClassloaderFromClassPath(classpath);
+
 			this.instrumentedClassLoader = new MemoryClassLoader(new URL[] { new File(classesDirectory).toURI().toURL(),
-					new File(testClassesDirectory).toURI().toURL() });
+					new File(testClassesDirectory).toURI().toURL() }, urlloader);
 			this.instrumentedClassLoader.definitions = definitions;
+
 		} catch (MalformedURLException e) {
 			throw new RuntimeException(e);
 		}
@@ -103,19 +107,17 @@ public abstract class JacocoRunner {
 	 * @return a {@link Coverage} instance that contains the instruction coverage of
 	 *         the given tests.
 	 */
-	public Coverage run(String classesDirectory, String testClassesDirectory, String fullQualifiedNameOfTestClass,
-			String... testMethodNames) {
+	@SuppressWarnings("unused")
+	public Coverage run(String classpath, String classesDirectory, String testClassesDirectory,
+			String fullQualifiedNameOfTestClass, String... testMethodNames) {
 
 		final RuntimeData data = new RuntimeData();
 		final ExecutionDataStore executionData = new ExecutionDataStore();
 		final SessionInfoStore sessionInfos = new SessionInfoStore();
 		URLClassLoader classLoader;
-		try {
-			classLoader = new URLClassLoader(new URL[] { new File(testClassesDirectory).toURI().toURL() },
-					this.instrumentedClassLoader);
-		} catch (MalformedURLException e) {
-			throw new RuntimeException(e);
-		}
+
+		getUrlClassloader(classpath, classesDirectory, testClassesDirectory);
+
 		final String resource = ConstantsHelper.fullQualifiedNameToPath.apply(fullQualifiedNameOfTestClass) + ".class";
 		try {
 			long initTest = (new Date()).getTime();
@@ -139,10 +141,10 @@ public abstract class JacocoRunner {
 			runtime.shutdown();
 
 			clearCache(this.instrumentedClassLoader);
-			// MM bug: collect but lean
-			// listener.collectData(executionData, testClassesDirectory);
-			//
+
 			listener.collectData(executionData, classesDirectory);
+			listener.collectData(executionData, testClassesDirectory);
+
 			// System.out.println("Running Collect " + ((new Date()).getTime() - initTest));
 
 			return listener;
@@ -151,6 +153,67 @@ public abstract class JacocoRunner {
 			throw new RuntimeException(e);
 		}
 
+	}
+
+	@Deprecated
+	public URLClassLoader getUrlClassloader(String classpath, String classesDirectory, String testClassesDirectory) {
+		URLClassLoader classLoader;
+		String[] cps = classpath.split(File.pathSeparator);
+		URL[] urls = new URL[cps.length + 2];
+		// URL[] urls = new URL[cps.length];
+
+		try {
+
+			for (int i = 0; i < cps.length; i++) {
+				// System.out.println(cps[i]);
+				urls[i] = new File(cps[i]).toURI().toURL();
+			}
+
+			urls[cps.length] = new File(classesDirectory).toURI().toURL();
+
+			urls[cps.length + 1] = new File(testClassesDirectory).toURI().toURL();
+
+			classLoader = new URLClassLoader(urls, ClassLoader.getSystemClassLoader()// this.instrumentedClassLoader
+			);
+
+			//
+			// classLoader = new URLClassLoader(new URL[] { new
+			// File(testClassesDirectory).toURI().toURL() },
+			// this.instrumentedClassLoader);
+
+		} catch (MalformedURLException e) {
+			throw new RuntimeException(e);
+		}
+		return classLoader;
+	}
+
+	/**
+	 * Return a classpath with all the dependencies.
+	 * 
+	 * @param classpath
+	 * @param classesDirectory
+	 * @param testClassesDirectory
+	 * @return
+	 */
+	public URLClassLoader getUrlClassloaderFromClassPath(String classpath) {
+		URLClassLoader classLoader;
+		String[] cps = classpath.split(File.pathSeparator);
+		URL[] urls = new URL[cps.length];
+
+		try {
+
+			for (int i = 0; i < cps.length; i++) {
+				// System.out.println(cps[i]);
+				urls[i] = new File(cps[i]).toURI().toURL();
+			}
+
+			classLoader = new URLClassLoader(urls, ClassLoader.getSystemClassLoader()// this.instrumentedClassLoader
+			);
+
+		} catch (MalformedURLException e) {
+			throw new RuntimeException(e);
+		}
+		return classLoader;
 	}
 
 	protected abstract Coverage executeTest(String[] testClassNames, String[] testMethodNames, List<String> blackList);
@@ -227,6 +290,7 @@ public abstract class JacocoRunner {
 				instrumentedClassLoader.addDefinition(fullQualifiedName, instrumenter
 						.instrument(instrumentedClassLoader.getResourceAsStream(fileName), fullQualifiedName));
 			} catch (IOException e) {
+				e.printStackTrace();
 				throw new RuntimeException(
 						fileName + "," + new File(fileName).getAbsolutePath() + "," + fullQualifiedName, e);
 			}
